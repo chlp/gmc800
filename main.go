@@ -34,21 +34,19 @@ func main() {
 			} else {
 				p, err := findSerialPort()
 				if err != nil {
-					log.Println("Порт не найден:", err)
+					log.Println("Serial Port not found:", err)
 					time.Sleep(3 * time.Second)
 					continue
 				}
 				port = p
-				log.Println("Найден порт:", port)
+				log.Println("Serial Port found:", port)
 			}
 
 			connectAndPollLoop(port)
 
 			if fixedPort != "" {
-				// Если порт задан жёстко, пробуем переподключиться к нему
 				time.Sleep(3 * time.Second)
 			} else {
-				// Если порт найден автоматически, ищем новый
 				time.Sleep(1 * time.Second)
 			}
 		}
@@ -66,30 +64,30 @@ func main() {
 		json.NewEncoder(w).Encode(resp)
 	})
 
-	log.Println("HTTP-сервер запущен на http://localhost:8080")
+	log.Println("HTTP-started on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func connectAndPollLoop(portName string) {
-	log.Println("Подключение к порту:", portName)
+	log.Println("Connecting with Serial Port:", portName)
 	s, err := serial.OpenPort(&serial.Config{
 		Name:        portName,
 		Baud:        115200,
 		ReadTimeout: time.Second,
 	})
 	if err != nil {
-		log.Println("Не удалось открыть порт:", err)
+		log.Println("Could not open port:", err)
 		return
 	}
 	defer s.Close()
 
-	log.Println("Успешное подключение к порту:", portName)
+	log.Println("Success:", portName)
 
 	for {
 		err := requestAndUpdateCPM(s)
 		if err != nil {
-			log.Println("Ошибка запроса CPM:", err)
-			break // выходим и пробуем снова подключиться
+			log.Println("Wrong request CPM:", err)
+			break
 		}
 		time.Sleep(5 * time.Second)
 	}
@@ -98,16 +96,16 @@ func connectAndPollLoop(portName string) {
 func requestAndUpdateCPM(s *serial.Port) error {
 	_, err := s.Write([]byte("<GETCPM>>"))
 	if err != nil {
-		return fmt.Errorf("ошибка записи команды: %w", err)
+		return fmt.Errorf("could not write: %w", err)
 	}
 
 	buf := make([]byte, 4)
 	n, err := s.Read(buf)
 	if err != nil {
-		return fmt.Errorf("ошибка чтения ответа: %w", err)
+		return fmt.Errorf("could not read: %w", err)
 	}
 	if n != 4 {
-		return fmt.Errorf("неполный ответ: %d байт", n)
+		return fmt.Errorf("wrong response: %d байт", n)
 	}
 
 	cpm := binary.BigEndian.Uint32(buf)
@@ -139,11 +137,10 @@ func getTemperatures() map[string]float64 {
 func findSerialPort() (string, error) {
 	matches, err := filepath.Glob("/dev/tty.usbserial-*")
 	if err != nil {
-		return "", fmt.Errorf("ошибка поиска портов: %w", err)
+		return "", fmt.Errorf("could not find port: %w", err)
 	}
 	if len(matches) == 0 {
-		return "", fmt.Errorf("не найдено подходящих портов")
+		return "", fmt.Errorf("could not find matching port")
 	}
-	// Выбираем последний (можно изменить логику по желанию)
 	return matches[len(matches)-1], nil
 }
