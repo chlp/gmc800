@@ -64,8 +64,8 @@ func main() {
 		json.NewEncoder(w).Encode(resp)
 	})
 
-	log.Println("HTTP-started on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("HTTP-started on http://localhost:8091")
+	log.Fatal(http.ListenAndServe(":8091", nil))
 }
 
 func connectAndPollLoop(portName string) {
