@@ -21,7 +21,7 @@ Other platforms (Linux, Windows) are untested and may require adjustments (e.g.,
 ## Protocol Reference
 
 This tool is based on the official serial communication protocol from GQ Electronics:  
-**GQ-RFC1201.txt** — copied directly from the [original specification](https://www.gqelectronicsllc.com/download/GQ-RFC1201.txt).
+[GQ-RFC1201.txt](GQ-RFC1201.txt) — copied directly from the [original specification](https://www.gqelectronicsllc.com/download/GQ-RFC1201.txt).
 
 ## Requirements
 
