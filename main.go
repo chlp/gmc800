@@ -11,14 +11,25 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shirou/gopsutil/v3/host"
 	"github.com/tarm/serial"
 )
 
 var (
-	currentCPM uint32
-	mu         sync.RWMutex
+	mu sync.RWMutex
 )
+
+type Metric struct {
+	Name   string `json:"name"`
+	Value  uint32 `json:"value"`
+	Unit   string `json:"unit"`
+	Status string `json:"status"`
+}
+
+var data = struct {
+	CPM Metric
+}{
+	CPM: Metric{"Radiation", 0, "cpm", "none"},
+}
 
 func main() {
 	var fixedPort string
@@ -55,13 +66,14 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		mu.RLock()
 		defer mu.RUnlock()
-		temps := getTemperatures()
-		resp := map[string]interface{}{
-			"cpm":  currentCPM,
-			"temp": temps,
+		resp := Metric{
+			Name:   "",
+			Value:  0,
+			Unit:   "",
+			Status: "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	log.Println("HTTP-started on http://localhost:8091")
@@ -111,29 +123,25 @@ func requestAndUpdateCPM(s *serial.Port) error {
 	cpm := binary.BigEndian.Uint32(buf)
 
 	mu.Lock()
-	currentCPM = cpm
+	data.CPM.Value = cpm
+	data.CPM.Status = statusCPM(cpm)
 	mu.Unlock()
 
 	return nil
 }
 
-func getTemperatures() map[string]float64 {
-	result := make(map[string]float64)
-
-	temps, err := host.SensorsTemperatures()
-	if err != nil {
-		result["error"] = -1
-		return result
+func statusCPM(cpm uint32) string {
+	switch {
+	case cpm <= 0:
+		return "none"
+	case cpm < 50:
+		return "ok"
+	case cpm < 100:
+		return "warn"
+	default:
+		return "critical"
 	}
-
-	for _, t := range temps {
-		if t.Temperature > 0 && t.Temperature < 100 {
-			result[t.SensorKey] = t.Temperature
-		}
-	}
-	return result
 }
-
 func findSerialPort() (string, error) {
 	matches, err := filepath.Glob("/dev/tty.usbserial-*")
 	if err != nil {

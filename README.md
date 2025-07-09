@@ -10,7 +10,7 @@ It reads real-time radiation data from the device and exposes it via a local HTT
 - Launches a local HTTP server on port `8091`
 - Serves current radiation data in JSON format:
   ```json
-  {"cpm": 20}
+  {"cpm": {"name": "Radiation", "value": 21, "unit": "cpm", "status": "ok"}}
   ```
 
 ## Platform
