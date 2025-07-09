@@ -74,13 +74,7 @@ func main() {
 		}
 		mu.RLock()
 		defer mu.RUnlock()
-		resp := Metric{
-			Name:   "",
-			Value:  0,
-			Unit:   "",
-			Status: "",
-		}
-		_ = json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(data)
 	})
 
 	log.Println("HTTP-started on http://localhost:8091")
