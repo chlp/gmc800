@@ -28,7 +28,7 @@ type Metric struct {
 var data = struct {
 	CPM Metric
 }{
-	CPM: Metric{"Radiation", 0, "cpm", "none"},
+	CPM: Metric{"Radiation", 0, "CPM", "none"},
 }
 
 func main() {
